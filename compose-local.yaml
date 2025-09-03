@@ -1,0 +1,12 @@
+services:
+  bot:
+    container_name: monopoly_bot
+    build: .
+    restart: on-failure
+    command: bash -c "poetry run aiogram run polling app.bot:create_dispatcher --token $TELEGRAM_BOT_TOKEN --log-level info --parse-mode HTML"
+    env_file: ".env"
+    ports:
+      - "8080:8080"
+    labels:
+      - "logging.promtail=true"
+      - "logging_jobname=monopoly_bot"
