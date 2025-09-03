@@ -11,7 +11,7 @@ services:
       - "./redis.conf:/usr/local/etc/redis/redis.conf"
 
   bot:
-    container_name: monopoly_bot
+    container_name: bot
     build: .
     restart: on-failure
     command: bash -c "poetry run aiogram run polling app.bot:create_dispatcher --token $TELEGRAM_BOT_TOKEN --log-level info --parse-mode HTML"

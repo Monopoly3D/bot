@@ -11,7 +11,7 @@ services:
       - "./redis.conf:/usr/local/etc/redis/redis.conf"
 
   bot:
-    container_name: monopoly_bot
+    container_name: bot
     image: "${BOT_IMAGE}"
     restart: on-failure
     command: bash -c "poetry run aiogram run webhook app.bot:create_dispatcher --token $TELEGRAM_BOT_TOKEN --webhook-url https://bot.monopoly3d.org/webhook --webhook-secret $TELEGRAM_SECRET --path /webhook --host 0.0.0.0 --port 8080 --log-level info --parse-mode HTML --delete-webhook --drop-pending-updates"
