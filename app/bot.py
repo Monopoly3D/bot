@@ -1,10 +1,14 @@
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.fsm.scene import SceneRegistry
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.utils.i18n import I18n, FSMI18nMiddleware
 from redis.asyncio import Redis
 
+from app.routes.start import start_router
+from app.scenes.start import StartScene
 from config import Config
 
 config = Config(_env_file=".env")
@@ -26,10 +30,24 @@ def create_dispatcher() -> Dispatcher:
 
     new_dispatcher = Dispatcher(storage=storage)
 
+    i18n = I18n(path="locales", default_locale="en", domain="messages")
+
     new_dispatcher.workflow_data.update(
         {
-            "config": config
+            "config": config,
+            "i18n": i18n
         }
+    )
+
+    FSMI18nMiddleware(i18n).setup(new_dispatcher)
+
+    new_dispatcher.include_routers(
+        start_router
+    )
+
+    registry = SceneRegistry(new_dispatcher)
+    registry.add(
+        StartScene
     )
 
     return new_dispatcher
