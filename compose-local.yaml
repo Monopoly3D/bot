@@ -1,4 +1,15 @@
 services:
+  redis:
+    container_name: bot_redis
+    image: redis:latest
+    restart: on-failure
+    command: "redis-server /usr/local/etc/redis/redis.conf"
+    ports:
+      - "7379:7379"
+    volumes:
+      - "redis-data:/data"
+      - "./redis.conf:/usr/local/etc/redis/redis.conf"
+
   bot:
     container_name: monopoly_bot
     build: .
@@ -10,3 +21,6 @@ services:
     labels:
       - "logging.promtail=true"
       - "logging_jobname=monopoly_bot"
+
+volumes:
+  redis-data:
