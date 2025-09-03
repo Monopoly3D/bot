@@ -14,7 +14,7 @@ services:
     container_name: bot
     build: .
     restart: on-failure
-    command: bash -c "poetry run aiogram run polling app.bot:create_dispatcher --token $TELEGRAM_BOT_TOKEN --log-level info --parse-mode HTML"
+    command: bash -c "poetry run python polling.py"
     env_file: ".env"
     ports:
       - "8080:8080"

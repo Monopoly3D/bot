@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 
-from app.bot import main
+from app.bot import main_webhook
 
 if __name__ == "__main__":
     if sys.platform == "win32":
@@ -14,4 +14,4 @@ if __name__ == "__main__":
         datefmt="%d-%m-%y %H:%M:%S"
     )
 
-    asyncio.run(main())
+    main_webhook()

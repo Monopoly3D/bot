@@ -5,6 +5,9 @@ from aiogram.fsm.scene import SceneRegistry
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.utils.i18n import I18n, FSMI18nMiddleware
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
+from aiohttp.web import Application
 from redis.asyncio import Redis
 
 from app.routes.start import start_router
@@ -12,13 +15,6 @@ from app.scenes.start import StartScene
 from config import Config
 
 config = Config(_env_file=".env")
-
-bot = Bot(
-    token=config.telegram_bot_token.get_secret_value(),
-    default=DefaultBotProperties(
-        parse_mode=ParseMode.HTML
-    )
-)
 
 
 def create_dispatcher() -> Dispatcher:
@@ -53,7 +49,52 @@ def create_dispatcher() -> Dispatcher:
     return new_dispatcher
 
 
-async def main() -> None:
+async def on_startup(bot: Bot) -> None:
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    await bot.set_webhook(
+        config.webhook_url.get_secret_value(),
+        secret_token=config.telegram_secret.get_secret_value()
+    )
+
+
+async def main_polling() -> None:
     dispatcher = create_dispatcher()
 
+    bot = Bot(
+        token=config.telegram_bot_token.get_secret_value(),
+        default=DefaultBotProperties(
+            parse_mode=ParseMode.HTML
+        )
+    )
+
     await dispatcher.start_polling(bot)
+
+
+def main_webhook() -> None:
+    dispatcher = create_dispatcher()
+    dispatcher.startup.register(on_startup)
+
+    bot = Bot(
+        token=config.telegram_bot_token.get_secret_value(),
+        default=DefaultBotProperties(
+            parse_mode=ParseMode.HTML
+        )
+    )
+
+    app = Application()
+
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dispatcher,
+        bot=bot,
+        secret_token=config.telegram_secret.get_secret_value(),
+    )
+    webhook_requests_handler.register(app, path=config.webhook_path.get_secret_value())
+
+    setup_application(app, dispatcher, bot=bot)
+
+    web.run_app(
+        app,
+        host="0.0.0.0",
+        port=8080
+    )
